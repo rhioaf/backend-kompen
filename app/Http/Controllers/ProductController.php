@@ -13,4 +13,10 @@ class ProductController extends Controller
         $result = Product::all();
         return $this->sendResponse($result);
     }
+
+    public function detail($id)
+    {
+        $result = Product::where('id_product', $id)->first();
+        return $this->sendResponse($result);
+    }
 }
