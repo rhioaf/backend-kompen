@@ -17,6 +17,9 @@ class ProductController extends Controller
     public function detail($id)
     {
         $result = Product::where('id_product', $id)->first();
+        if(is_null($result)){
+            return $this->sendError('Produk tidak ditemukan');
+        }
         return $this->sendResponse($result);
     }
 }

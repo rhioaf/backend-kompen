@@ -23,13 +23,13 @@ class Controller extends BaseController
     }
 
     // Send invalid response API
-    public function sendError($error){
+    public function sendError($error, $code = 404){
         $responses = [
             'success'   =>  false,
             'message'   =>  $error
         ];
 
-        return response()->json($responses, 404);
+        return response()->json($responses, $code);
     }
 
 }
