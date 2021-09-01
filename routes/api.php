@@ -26,7 +26,7 @@ Route::get('cart/{id}', [CartController::class, 'all']);
 Route::post('cart', [CartController::class, 'addToCart']);
 Route::post('incTotalPesan/{id_cart}/{id_product}', [CartController::class, 'incTotalPesan']);
 Route::post('decTotalPesan/{id_cart}/{id_product}', [CartController::class, 'decTotalPesan']);
-Route::post('remove/{id_cart}/{id_product}', [CartController::class, 'removeProductInCartItem']);
+Route::delete('remove/{id_cart}/{id_product}', [CartController::class, 'removeProductInCartItem']);
 Route::delete('cart/{id}', [CartController::class, 'delete']);
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {

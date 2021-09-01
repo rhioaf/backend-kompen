@@ -26,6 +26,15 @@ class CartController extends Controller
         }
 
         $updatedCart = DB::table('cart')->where('id_cart', $cart->id_cart)->update(['total_harga'   =>  $updatedTotalHarga]);
+
+        // Loop list cart item to add name of product
+        for($i=0; $i < count($listCartItem); $i++){
+            $dataCart = $listCartItem[$i];
+            $productData = Product::find($dataCart->id_product);
+            $dataCart->nama_product = $productData->nama_product;
+            $listCartItem[$i] = $dataCart;
+        }
+
         $cartData = array('id_cart' =>  $cart->id_cart, 'total_harga'   => $updatedTotalHarga, 'cart_item' =>  $listCartItem);
         return $this->sendResponse($cartData);
     }
@@ -83,7 +92,7 @@ class CartController extends Controller
                     ['id_cart', '=', $cartData->id_cart],
                     ['id_product', '=', $request->id_product]
                 ])->update([
-                    'total_pesan'   =>  $request->total_pesan
+                    'total_pesan'   =>  $request->total_pesan + $validateProduct->total_pesan
                 ]);
             }
 
