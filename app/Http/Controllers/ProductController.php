@@ -5,13 +5,14 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 
 use App\Models\Product;
+use App\Http\Resources\Product as ProductResource;
 
 class ProductController extends Controller
 {
     // Return list of Menu
     public function all(){
         $result = Product::all();
-        return $this->sendResponse($result);
+        return $this->sendResponse(ProductResource::collection($result));
     }
 
     public function detail($id)

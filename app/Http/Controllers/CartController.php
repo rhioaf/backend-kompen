@@ -33,6 +33,7 @@ class CartController extends Controller
     public function addToCart(Request $request){
         $validateInput = Validator::make($request->all(), 
         [
+            'id_cart'       =>      'required',
             'id_product'    =>      'required',
             'total_pesan'   =>      'required'
         ]);
@@ -41,81 +42,52 @@ class CartController extends Controller
             return $this->sendError($validateInput->errors(), 422);
         }
 
-        // Kalo true berarti udah ada data cart nya (nambah product baru ke cart) else create cart baru dengan cart item yang baru
-        if($request->has('id_cart')){
-            // Validasi keberadaan cart pada database
-            $cartData = Cart::find($request->id_cart);
-            if(is_null($cartData)){
-                return $this->sendError('Cart tidak ditemukan');
-            }
+        // Validasi keberadaan cart pada database
+        $cartData = Cart::find($request->id_cart);
+        if(is_null($cartData)){
+            return $this->sendError('Cart tidak ditemukan');
+        }
 
-            // Validasi keberadaan product
-            $productData = Product::find($request->id_product);
-            if(is_null($productData)){
-                return $this->sendError('Product tidak ditemukan');
-            }
+        // Validasi keberadaan product
+        $productData = Product::find($request->id_product);
+        if(is_null($productData)){
+            return $this->sendError('Product tidak ditemukan');
+        }
 
-            // Validasi kalo product yang dimasukkan sudah ada atau belum
-            $validateProduct = DB::table('cart_item')->where([
-                ['id_cart', '=', $request->id_cart],
-                ['id_product', '=', $request->id_product]
-            ])->first();
+        // Validasi kalo product yang dimasukkan sudah ada atau belum
+        $validateProduct = DB::table('cart_item')->where([
+            ['id_cart', '=', $request->id_cart],
+            ['id_product', '=', $request->id_product]
+        ])->first();
 
-            if(is_null($validateProduct)){
-                // Berarti barang nya baru
-                $newCartItem = DB::table('cart_item')->insert([
-                    'id_cart'       =>  $cartData->id_cart,
-                    'id_product'    =>  $request->id_product,
-                    'harga_product' =>  $productData->harga_product,
-                    'total_pesan'   =>  $request->total_pesan
-                ]);
-                
-                return $this->all($request->id_cart);
-            } else {
-                // Berarti barangnya udah ada
-                // Tinggal update total barang yang dipesan
-                if($request->total_pesan <= 0){
-                    $deleteCartItem = DB::table('cart_item')->where([
-                        ['id_cart', '=', $cartData->id_cart],
-                        ['id_product', '=', $request->id_product]
-                    ])->delete();
-                } else {
-                    $updatedCartItem = DB::table('cart_item')->where([
-                        ['id_cart', '=', $cartData->id_cart],
-                        ['id_product', '=', $request->id_product]
-                    ])->update([
-                        'total_pesan'   =>  $request->total_pesan
-                    ]);
-                }
-
-                return $this->all($cartData->id_cart);
-            }
-        } else {
-            // Validasi total_pesan tidak boleh 0 saat menambahkan pesanan baru
-            if($request->total_pesan <= 0){
-                return $this->sendError('Total pesan tidak boleh 0');
-            }
-
-            // Validasi keberadaan product
-            $productData = Product::find($request->id_product);
-            if(is_null($productData)){
-                return $this->sendError('Product tidak ditemukan');
-            }
-
-            // Buat cart baru dengan mengembalikan id_cart
-            $newCartId = DB::table('cart')->insertGetId([
-                'total_harga'   =>  $productData->harga_product * $request->total_pesan
-            ]);
-
-            // Masukan product yang dimasukkan ke tabel cart_item
+        if(is_null($validateProduct)){
+            // Berarti barang nya baru mau dimasukkan ke cart
             $newCartItem = DB::table('cart_item')->insert([
-                'id_cart'       =>  $newCartId,
+                'id_cart'       =>  $cartData->id_cart,
                 'id_product'    =>  $request->id_product,
                 'harga_product' =>  $productData->harga_product,
                 'total_pesan'   =>  $request->total_pesan
             ]);
+            
+            return $this->all($request->id_cart);
+        } else {
+            // Berarti barangnya udah ada
+            // Tinggal update total barang yang dipesan
+            if($request->total_pesan <= 0){
+                $deleteCartItem = DB::table('cart_item')->where([
+                    ['id_cart', '=', $cartData->id_cart],
+                    ['id_product', '=', $request->id_product]
+                ])->delete();
+            } else {
+                $updatedCartItem = DB::table('cart_item')->where([
+                    ['id_cart', '=', $cartData->id_cart],
+                    ['id_product', '=', $request->id_product]
+                ])->update([
+                    'total_pesan'   =>  $request->total_pesan
+                ]);
+            }
 
-            return $this->all($newCartId);
+            return $this->all($cartData->id_cart);
         }
     }
 
@@ -227,7 +199,7 @@ class CartController extends Controller
             return $this->sendError('Cart tidak ditemukan');
         }
 
-        $deleteCart = DB::table('cart')->where('id_cart', $id_cart)->delete();
-        return $this->sendResponse([]);
+        $deleteCart = DB::table('cart_item')->where('id_cart', $id_cart)->delete();
+        return $this->all($id_cart);
     }
 }
